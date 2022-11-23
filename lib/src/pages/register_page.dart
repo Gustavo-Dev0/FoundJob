@@ -20,7 +20,7 @@ class _RegisterPageState extends State<RegisterPage> {
         child: SingleChildScrollView(
         child: Column(
           children: [
-            SizedBox(height: 20.0),
+            const SizedBox(height: 20.0),
             Container(
                 alignment: Alignment.center,
                 margin: EdgeInsets.symmetric(horizontal: 80.0),
@@ -37,44 +37,40 @@ class _RegisterPageState extends State<RegisterPage> {
                 )),
             SizedBox(height: 15.0),
             Image.asset('assets/images/logo.png', height: 140),
-            SizedBox(height: 15.0),
-            SizedBox(
-              height: 40,
-              child: ToggleSwitch(
-                minWidth: 160.0,
-                cornerRadius: 20.0,
-                activeBgColors: const [
-                  [Colors.orange],
-                  [Colors.orange]
-                ],
-                activeFgColor: Colors.white,
-                inactiveBgColor: Colors.grey,
-                inactiveFgColor: Colors.white,
-                initialLabelIndex: 1,
-                totalSwitches: 2,
-                labels: ['Busco ayuda', 'Soy profesional'],
-                radiusStyle: true,
-                onToggle: (index) {
-                  print('switched to: $index');
-                },
-              ),
-            ),
-            SizedBox(height: 15.0),
+            const SizedBox(height: 15.0),
             _nameTextField(),
-            SizedBox(height: 15.0),
+            const SizedBox(height: 15.0),
             _userTextField(),
-            SizedBox(height: 15.0),
+            const SizedBox(height: 15.0),
             _passwordTextField(),
-            SizedBox(height: 20.0),
+            const SizedBox(height: 20.0),
             _buttonRegister(),
+            const SizedBox(height: 20.0),
+            Row(
+                children: const [
+                  Expanded(
+                      child: Divider(
+                        thickness: 2,
+                        color: Colors.black,
+                        indent: 40
+                      )
+                  ),
+                  Text("   O   "),
+                  Expanded(
+                      child: Divider(
+                          thickness: 2,
+                          color: Colors.black,
+                          endIndent: 40
+                      )
+                  ),
+                ]
+            ),
             const SizedBox(height: 25.0),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Text('Continuar con Google. ', textAlign: TextAlign.right, ),
-
+              children: const [
+                Text('Continuar con Google. ', textAlign: TextAlign.right, ),
               ],
-
             ),
 
           ],
@@ -97,7 +93,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   decoration: const InputDecoration(
                     contentPadding: EdgeInsets.symmetric(vertical: 10.0),
                     prefixIcon: Icon(Icons.person),
-                    hintText: 'ejemplo@com.com',
+                    hintText: 'Nombres',
                     //labelText: "Correo",
                     border: OutlineInputBorder(
                       borderRadius: const BorderRadius.all(

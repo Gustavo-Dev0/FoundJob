@@ -32,6 +32,8 @@ dependencies:
   flutter:
     sdk: flutter
   toggle_switch: ^2.0.1
+  intl: ^0.17.0
+  fluttertoast: ^8.1.1
 
 
   # The following adds the Cupertino Icons font to your application.

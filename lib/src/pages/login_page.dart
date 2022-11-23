@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:toggle_switch/toggle_switch.dart';
+import 'package:work_app/src/pages/main_page_professional.dart';
 import 'package:work_app/src/pages/register_page.dart';
 
 import 'main_page.dart';
@@ -21,10 +22,10 @@ class _LoginPageState extends State<LoginPage> {
         child: SingleChildScrollView(
         child: Column(
           children: [
-            SizedBox(height: 20.0),
+            const SizedBox(height: 20.0),
             Container(
                 alignment: Alignment.center,
-                margin: EdgeInsets.symmetric(horizontal: 80.0),
+                margin: const EdgeInsets.symmetric(horizontal: 80.0),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(10),
                   color: Colors.orange,
@@ -36,9 +37,9 @@ class _LoginPageState extends State<LoginPage> {
                   style: TextStyle(
                       color: Colors.white, fontWeight: FontWeight.bold),
                 )),
-            SizedBox(height: 15.0),
+            const SizedBox(height: 15.0),
             Image.asset('assets/images/logo.png'),
-            SizedBox(height: 15.0),
+            const SizedBox(height: 15.0),
             SizedBox(
               height: 40,
               child: ToggleSwitch(
@@ -60,12 +61,13 @@ class _LoginPageState extends State<LoginPage> {
                 },
               ),
             ),
-            SizedBox(height: 15.0),
+            const SizedBox(height: 15.0),
             _userTextField(),
-            SizedBox(height: 15.0),
+            const SizedBox(height: 15.0),
             _passwordTextField(),
-            SizedBox(height: 20.0),
+            const SizedBox(height: 20.0),
             _buttonLogin(),
+            _buttonLogin2(),
             const SizedBox(height: 25.0),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -101,8 +103,8 @@ class _LoginPageState extends State<LoginPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Text('Correo Electrónico', textAlign: TextAlign.left, textScaleFactor: 1.2,),
-                SizedBox(height: 8.0),
+                const Text('Correo Electrónico', textAlign: TextAlign.left, textScaleFactor: 1.2,),
+                const SizedBox(height: 8.0),
                 TextField(
                   keyboardType: TextInputType.emailAddress,
                   decoration: const InputDecoration(
@@ -111,7 +113,7 @@ class _LoginPageState extends State<LoginPage> {
                     hintText: 'ejemplo@com.com',
                     //labelText: "Correo",
                     border: OutlineInputBorder(
-                      borderRadius: const BorderRadius.all(
+                      borderRadius: BorderRadius.all(
                         Radius.circular(40.0),
                       ),
                     ),
@@ -133,8 +135,8 @@ class _LoginPageState extends State<LoginPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Text('Contraseña', textAlign: TextAlign.left, textScaleFactor: 1.2,),
-              SizedBox(height: 8.0),
+              const Text('Contraseña', textAlign: TextAlign.left, textScaleFactor: 1.2,),
+              const SizedBox(height: 8.0),
               TextField(
                 obscureText: true,
                 decoration: const InputDecoration(
@@ -144,7 +146,7 @@ class _LoginPageState extends State<LoginPage> {
                     hintText: 'Contraseña',
                     //labelText: "Contraseña"
                     border: OutlineInputBorder(
-                      borderRadius: const BorderRadius.all(
+                      borderRadius: BorderRadius.all(
                         Radius.circular(40.0),
                       ),
                     ),
@@ -164,10 +166,6 @@ class _LoginPageState extends State<LoginPage> {
     return StreamBuilder(
       builder: (BuildContext context, AsyncSnapshot snapshot) {
         return ElevatedButton(
-          child: Container(
-            padding: EdgeInsets.symmetric(horizontal: 50.0, vertical: 15.0),
-            child: Text('Ingresar', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),),
-          ),
           style: ElevatedButton.styleFrom(
             //padding: EdgeInsets.symmetric(horizontal: 40.0, vertical: 20.0),
             shape: RoundedRectangleBorder(
@@ -181,6 +179,35 @@ class _LoginPageState extends State<LoginPage> {
               MaterialPageRoute(builder: (context) => MainPage()),
             );
           },
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 50.0, vertical: 15.0),
+            child: const Text('Ingresar Cliente', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),),
+          ),
+        );
+      },
+    );
+  }
+  Widget _buttonLogin2() {
+    return StreamBuilder(
+      builder: (BuildContext context, AsyncSnapshot snapshot) {
+        return ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            //padding: EdgeInsets.symmetric(horizontal: 40.0, vertical: 20.0),
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10.0)
+            ),
+            backgroundColor: Colors.orange,
+          ),
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => MainProfessionalPage()),
+            );
+          },
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 50.0, vertical: 15.0),
+            child: const Text('Ingresar Profesional', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),),
+          ),
         );
       },
     );

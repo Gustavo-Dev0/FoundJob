@@ -4,22 +4,25 @@ import 'package:work_app/src/pages/register_page.dart';
 import 'package:work_app/src/pages/requests_accepted_page.dart';
 import 'package:work_app/src/pages/requests_made_page.dart';
 import 'package:work_app/src/pages/requests_page.dart';
+import 'package:work_app/src/pages/requests_published_page.dart';
 
-class MainPage extends StatefulWidget {
+class MainProfessionalPage extends StatefulWidget {
   static String id = 'login_page';
 
   @override
-  _MainPageState createState() => _MainPageState();
+  _MainProfessionalPageState createState() => _MainProfessionalPageState();
 }
 
-class _MainPageState extends State<MainPage> {
+class _MainProfessionalPageState extends State<MainProfessionalPage> {
   int _selectedIndex = 0;
   static const TextStyle optionStyle =
     TextStyle(fontSize: 30, fontWeight: FontWeight.bold);
   static List<Widget> _widgetOptions = <Widget>[
-    RequestsPage(),
-    RequestsAcceptedPage(),
-    RequestsMadePage(),
+    Text(
+      'Perfil de professional',
+      style: optionStyle,
+    ),
+    RequestsPublishedPage(),
     Text(
       'Index 3: Configuración',
       style: optionStyle,
@@ -46,18 +49,13 @@ class _MainPageState extends State<MainPage> {
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
             icon: Icon(Icons.person),
-            label: 'Home',
+            label: 'Perfil',
             //backgroundColor: Colors.red,
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.campaign),
             label: 'Solicitudes',
             //backgroundColor: Colors.green,
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.work),
-            label: 'Propuestas',
-            //backgroundColor: Colors.purple,
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.settings),
