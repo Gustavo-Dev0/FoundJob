@@ -1,7 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:logger/logger.dart';
 import 'package:toggle_switch/toggle_switch.dart';
 
+import '../../domain/entities/user_entity.dart';
+import '../cubit/auth/auth_cubit.dart';
+import '../cubit/user/user_cubit.dart';
 import 'main_page.dart';
+import 'main_page_professional.dart';
 
 class RegisterPage extends StatefulWidget {
   static String id = 'login_page';
@@ -11,13 +18,84 @@ class RegisterPage extends StatefulWidget {
 }
 
 class _RegisterPageState extends State<RegisterPage> {
+
+  TextEditingController _nameController = TextEditingController();
+  TextEditingController _emailController = TextEditingController();
+  TextEditingController _passwordController = TextEditingController();
+  bool _isProfessional = false;
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    _nameController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
         child: Scaffold(
           //backgroundColor: Colors.red,
-      body: Center(
-        child: SingleChildScrollView(
+            body: BlocConsumer<UserCubit, UserState>(
+              builder: (context, userState){
+                if (userState is UserSuccess){
+                return BlocBuilder<AuthCubit,AuthState>(builder:(context,authState){
+
+                  if (authState is Authenticated){
+                    if(authState.profile.role == "cliente")
+                      return MainPage(uid: authState.uid);
+                    return MainProfessionalPage();
+                  }else{
+                    /*Fluttertoast.showToast(
+                        msg: "Usuario no autenticado",
+                        toastLength: Toast.LENGTH_SHORT,
+                        gravity: ToastGravity.BOTTOM,
+                        timeInSecForIosWeb: 1,
+                        backgroundColor: Colors.red,
+                        textColor: Colors.white,
+                        fontSize: 16.0
+                    );*/
+                    return _bodyWidget();
+                  }
+                });
+              }
+                return _bodyWidget();
+              },
+              listener: (context,userState){
+                if (userState is UserSuccess){
+                  BlocProvider.of<AuthCubit>(context).loggedIn();
+                  Fluttertoast.showToast(
+                      msg: "Usuario registrado",
+                      toastLength: Toast.LENGTH_SHORT,
+                      gravity: ToastGravity.BOTTOM,
+                      timeInSecForIosWeb: 1,
+                      backgroundColor: Colors.red,
+                      textColor: Colors.white,
+                      fontSize: 16.0
+                  );
+                }
+                if (userState is UserFailure){
+                  //snackBarError(msg: "invalid email",scaffoldState: _scaffoldGlobalKey);
+                  Fluttertoast.showToast(
+                      msg: "error",
+                      toastLength: Toast.LENGTH_SHORT,
+                      gravity: ToastGravity.BOTTOM,
+                      timeInSecForIosWeb: 1,
+                      backgroundColor: Colors.red,
+                      textColor: Colors.white,
+                      fontSize: 16.0
+                  );
+                }
+              },
+            )
+
+        ));
+  }
+
+  _bodyWidget(){
+    return Center(
+      child: SingleChildScrollView(
         child: Column(
           children: [
             const SizedBox(height: 20.0),
@@ -37,6 +115,29 @@ class _RegisterPageState extends State<RegisterPage> {
                 )),
             SizedBox(height: 15.0),
             Image.asset('assets/images/logo.png', height: 140),
+            SizedBox(height: 15.0),
+            SizedBox(
+              height: 40,
+              child: ToggleSwitch(
+                minWidth: 160.0,
+                cornerRadius: 20.0,
+                activeBgColors: const [
+                  [Colors.orange],
+                  [Colors.orange]
+                ],
+                activeFgColor: Colors.white,
+                inactiveBgColor: Colors.grey,
+                inactiveFgColor: Colors.white,
+                initialLabelIndex: _isProfessional ? 1 : 0,
+                totalSwitches: 2,
+                labels: ['Busco ayuda', 'Soy profesional'],
+                radiusStyle: true,
+                onToggle: (index) {
+                  setState(() => _isProfessional = !_isProfessional);
+                },
+              ),
+            ),
+            const SizedBox(height: 15.0),
             const SizedBox(height: 15.0),
             _nameTextField(),
             const SizedBox(height: 15.0),
@@ -50,9 +151,9 @@ class _RegisterPageState extends State<RegisterPage> {
                 children: const [
                   Expanded(
                       child: Divider(
-                        thickness: 2,
-                        color: Colors.black,
-                        indent: 40
+                          thickness: 2,
+                          color: Colors.black,
+                          indent: 40
                       )
                   ),
                   Text("   O   "),
@@ -75,10 +176,11 @@ class _RegisterPageState extends State<RegisterPage> {
 
           ],
         ),
-        ),
       ),
-    ));
+    );
   }
+
+
   Widget _nameTextField() {
     return StreamBuilder(
       builder: (BuildContext context, AsyncSnapshot snapshot) {
@@ -101,7 +203,7 @@ class _RegisterPageState extends State<RegisterPage> {
                       ),
                     ),
                   ),
-                  onChanged: (value) {},
+                  controller: _nameController,
                 ),
 
               ],
@@ -133,7 +235,7 @@ class _RegisterPageState extends State<RegisterPage> {
                       ),
                     ),
                   ),
-                  onChanged: (value) {},
+                  controller: _emailController,
                 ),
 
               ],
@@ -166,7 +268,7 @@ class _RegisterPageState extends State<RegisterPage> {
                       ),
                     ),
                 ),
-                onChanged: (value) {},
+                controller: _passwordController,
               ),
             ],
           ),
@@ -191,13 +293,28 @@ class _RegisterPageState extends State<RegisterPage> {
             backgroundColor: Colors.orange,
           ),
           onPressed: () {
-            Navigator.push(
+            submitSignUp();
+            /*Navigator.push(
               context,
               MaterialPageRoute(builder: (context) => MainPage()),
-            );
+            );*/
           },
         );
       },
     );
+  }
+
+  Future<void> submitSignUp() async {
+    if (_emailController.text.isNotEmpty &&
+        _passwordController.text.isNotEmpty) {
+      await BlocProvider.of<UserCubit>(context).submitSignUp(user: UserEntity(
+        name: _nameController.text,
+        email: _emailController.text,
+        password: _passwordController.text,
+        role: _isProfessional ? "trabajador" : "cliente" ,
+      ));
+
+
+    }
   }
 }

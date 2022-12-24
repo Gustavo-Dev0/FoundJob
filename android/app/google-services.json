@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "40007055234",
+    "project_id": "find-job-pe",
+    "storage_bucket": "find-job-pe.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:40007055234:android:41e17e4793c71d8570019b",
+        "android_client_info": {
+          "package_name": "com.dev0.work_app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "40007055234-uah4ff8tbhanoqms09u61qrhmaidden2.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD9C2j0VPQiPk8UBjfzNenAT3ZAcOJCfDI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "40007055234-uah4ff8tbhanoqms09u61qrhmaidden2.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

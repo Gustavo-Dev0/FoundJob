@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:toggle_switch/toggle_switch.dart';
-import 'package:work_app/src/pages/requests_published_detail_page.dart';
+import 'package:work_app/src/presentation/pages/requests_published_detail_page.dart';
 
+import '../cubit/auth/auth_cubit.dart';
 import 'main_page.dart';
 
 class RequestsPublishedPage extends StatefulWidget {
@@ -109,6 +111,7 @@ class _CardRequestState extends State<CardRequest> {
                                   Text(widget.itemRJ.ubication),
                                   TextButton(
                                       onPressed: ()=>{
+                                      //BlocProvider.of<AuthCubit>(context).loggedOut()
                                         Navigator.push(
                                         context,
                                         MaterialPageRoute(builder: (context) => RequestsPublishedDetailPage(widget.itemRJ)),)

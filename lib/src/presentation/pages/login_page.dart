@@ -1,9 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:logger/logger.dart';
 import 'package:toggle_switch/toggle_switch.dart';
-import 'package:work_app/src/pages/main_page_professional.dart';
-import 'package:work_app/src/pages/register_page.dart';
+import 'package:work_app/src/presentation/pages/register_page.dart';
 
+import '../../domain/entities/user_entity.dart';
+import '../../domain/use_cases/get_current_user_info_usecase.dart';
+import '../cubit/auth/auth_cubit.dart';
+import '../cubit/profile/profile_cubit.dart';
+import '../cubit/user/user_cubit.dart';
 import 'main_page.dart';
+import 'main_page_professional.dart';
 
 class LoginPage extends StatefulWidget {
   static String id = 'login_page';
@@ -13,13 +21,89 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
+  TextEditingController _emailController = TextEditingController();
+  TextEditingController _passwordController = TextEditingController();
+
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
         child: Scaffold(
           //backgroundColor: Colors.red,
-      body: Center(
-        child: SingleChildScrollView(
+          body: BlocConsumer<UserCubit, UserState>(
+            builder: (context, userState){
+              if (userState is UserSuccess){
+                return BlocBuilder<AuthCubit,AuthState>(builder:(context,authState){
+
+                  if (authState is Authenticated){
+                    /*if(authState.profile.status == "trabajador"){
+                      return MainProfessionalPage();
+                    }else{*/
+                    //String role = "wefwefwefwefwefwefwefwefwefwef";
+                    //BlocProvider.of<ProfileCubit>(context).getCurrentUserInfoDirect().then((value) {
+                     // role = value.role!;
+                      //Logger().wtf("ESto debe ser primero");
+                    //});
+                    //Logger().wtf(role);
+                    //return _bodyWidget();
+                    if(authState.profile.role == "cliente")
+                      return MainPage(uid: authState.uid);
+                    return MainProfessionalPage();
+                    /*}*/
+                    return _bodyWidget();
+
+                  }else{
+                    return _bodyWidget();
+                  }
+                });
+              }
+              return _bodyWidget();
+            },
+            listener: (context,userState){
+              if (userState is UserSuccess){
+
+                //Logger().wtf(userState.props.isEmpty);
+
+
+                BlocProvider.of<AuthCubit>(context).loggedIn();
+                /*Fluttertoast.showToast(
+                    msg: "Usuario logueado",
+                    toastLength: Toast.LENGTH_SHORT,
+                    gravity: ToastGravity.BOTTOM,
+                    timeInSecForIosWeb: 1,
+                    backgroundColor: Colors.red,
+                    textColor: Colors.white,
+                    fontSize: 16.0
+                );*/
+              }
+              if (userState is UserFailure){
+                //snackBarError(msg: "invalid email",scaffoldState: _scaffoldGlobalKey);
+                /*Fluttertoast.showToast(
+                    msg: "invalid email",
+                    toastLength: Toast.LENGTH_SHORT,
+                    gravity: ToastGravity.BOTTOM,
+                    timeInSecForIosWeb: 1,
+                    backgroundColor: Colors.red,
+                    textColor: Colors.white,
+                    fontSize: 16.0
+                );*/
+              }
+            },
+          )
+
+    ));
+  }
+
+  _bodyWidget() {
+    return Center(
+      child: SingleChildScrollView(
         child: Column(
           children: [
             const SizedBox(height: 20.0),
@@ -40,7 +124,7 @@ class _LoginPageState extends State<LoginPage> {
             const SizedBox(height: 15.0),
             Image.asset('assets/images/logo.png'),
             const SizedBox(height: 15.0),
-            SizedBox(
+            /*SizedBox(
               height: 40,
               child: ToggleSwitch(
                 minWidth: 160.0,
@@ -61,13 +145,13 @@ class _LoginPageState extends State<LoginPage> {
                 },
               ),
             ),
-            const SizedBox(height: 15.0),
+            const SizedBox(height: 15.0),*/
             _userTextField(),
             const SizedBox(height: 15.0),
             _passwordTextField(),
             const SizedBox(height: 20.0),
             _buttonLogin(),
-            _buttonLogin2(),
+            //_buttonLogin2(),
             const SizedBox(height: 25.0),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -90,9 +174,8 @@ class _LoginPageState extends State<LoginPage> {
 
           ],
         ),
-        ),
       ),
-    ));
+    );
   }
 
   Widget _userTextField() {
@@ -118,7 +201,7 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                     ),
                   ),
-                  onChanged: (value) {},
+                  controller: _emailController,
                 ),
 
               ],
@@ -151,7 +234,7 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                     ),
                 ),
-                onChanged: (value) {},
+                controller: _passwordController,
               ),
               const SizedBox(height: 8.0),
               const Text('Olvidé mi contraseña', textAlign: TextAlign.right, style: TextStyle(decoration: TextDecoration.underline,),),
@@ -174,14 +257,15 @@ class _LoginPageState extends State<LoginPage> {
             backgroundColor: Colors.orange,
           ),
           onPressed: () {
-            Navigator.push(
+            submitSignIn();
+            /*Navigator.push(
               context,
               MaterialPageRoute(builder: (context) => MainPage()),
-            );
+            );*/
           },
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 50.0, vertical: 15.0),
-            child: const Text('Ingresar Cliente', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),),
+            child: const Text('Ingresar', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),),
           ),
         );
       },
@@ -199,10 +283,11 @@ class _LoginPageState extends State<LoginPage> {
             backgroundColor: Colors.orange,
           ),
           onPressed: () {
-            Navigator.push(
+            BlocProvider.of<AuthCubit>(context).loggedOut();
+            /*Navigator.push(
               context,
               MaterialPageRoute(builder: (context) => MainProfessionalPage()),
-            );
+            );*/
           },
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 50.0, vertical: 15.0),
@@ -211,5 +296,17 @@ class _LoginPageState extends State<LoginPage> {
         );
       },
     );
+  }
+
+
+  void submitSignIn() {
+    if (_emailController.text.isNotEmpty &&
+        _passwordController.text.isNotEmpty) {
+      BlocProvider.of<UserCubit>(context).submitSignIn(user: UserEntity(
+        email: _emailController.text,
+        password: _passwordController.text,
+      ));
+
+    }
   }
 }

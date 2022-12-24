@@ -3,7 +3,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:toggle_switch/toggle_switch.dart';
-import 'package:work_app/src/pages/requests_published_page.dart';
+import 'package:work_app/src/presentation/pages/requests_published_page.dart';
 
 import 'main_page.dart';
 
@@ -91,10 +91,7 @@ class _RequestsPublishedDetailPageState extends State<RequestsPublishedDetailPag
                                                     backgroundColor: Colors.orangeAccent,
                                                   ),
                                                   onPressed: () {
-                                                    Navigator.push(
-                                                      context,
-                                                      MaterialPageRoute(builder: (context) => MainPage()),
-                                                    );
+                                                    Navigator.pop(context);
                                                   },
                                                 ),
                                                 const SizedBox(height: 15.0),
