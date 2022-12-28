@@ -1,11 +1,19 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:file_picker/src/platform_file.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:logger/logger.dart';
+import 'package:work_app/src/data/remote/models/applicant_model.dart';
+import 'package:work_app/src/domain/entities/applicant_entity.dart';
 import 'package:work_app/src/domain/entities/request_entity.dart';
 import '../../../domain/entities/user_entity.dart';
 import '../models/request_model.dart';
 import '../models/user_model.dart';
 import 'firebase_remote_data_source.dart';
+import 'dart:io';
 
 class FirebaseRemoteDataSourceImpl implements FirebaseRemoteDataSource {
   final FirebaseAuth auth;
@@ -13,45 +21,6 @@ class FirebaseRemoteDataSourceImpl implements FirebaseRemoteDataSource {
 
   FirebaseRemoteDataSourceImpl({required this.auth, required this.firestore});
 
-  /*@override
-  Future<void> addNewNote(NoteEntity noteEntity) async{
-    final noteCollectionRef =
-    firestore.collection("users").doc(noteEntity.uid).collection("notes");
-
-    final noteId = noteCollectionRef.doc().id;
-
-    noteCollectionRef.doc(noteId).get().then((note) {
-      final newNote = NoteModel(
-        uid: noteEntity.uid,
-        noteId: noteId,
-        note: noteEntity.note,
-        time: noteEntity.time,
-      ).toDocument();
-
-      if (!note.exists) {
-
-        noteCollectionRef.doc(noteId).set(newNote);
-
-      }
-      return;
-    });
-  }
-
-  @override
-  Future<void> deleteNote(NoteEntity noteEntity)async {
-    final noteCollectionRef =
-    firestore.collection("users").doc(noteEntity.uid).collection("notes");
-
-
-    noteCollectionRef.doc(noteEntity.noteId).get().then((note) {
-      if (note.exists){
-        noteCollectionRef.doc(noteEntity. noteId).delete();
-      }
-      return;
-    });
-
-  }
-*/
   @override
   Future<void> getCreateCurrentUser(UserEntity user) async{
     final userCollectionRef = firestore.collection("users");
@@ -62,7 +31,9 @@ class FirebaseRemoteDataSourceImpl implements FirebaseRemoteDataSource {
         status: user.status,
         email: user.email,
         name: user.name,
-        role: user.role
+        role: user.role,
+        degreeCode: user.degreeCode,
+        professions: user.professions
       ).toDocument();
       if (!value.exists){
         await userCollectionRef.doc(uid).set(newUser);
@@ -90,77 +61,50 @@ class FirebaseRemoteDataSourceImpl implements FirebaseRemoteDataSource {
 
   @override
   Stream<List<RequestEntity>> getRequests(String uid) {
+
     final noteCollectionRef=firestore.collection("users").doc(uid).collection("requests");
-
-
-    final noteCollectionRef2=firestore.collection("users").where('role', isEqualTo: 'cliente');
-
-    return noteCollectionRef2.snapshots().map((event){
-      var a = event.docs.map((e) => e.get('uid')).toList();
-      List<RequestModel> l = [];
-      //Logger().wtf(a.toString());
-      /*var x = 1;
-      a.forEach((element) {
-        //Logger().wtf(element);
-        var a2 = firestore.collection("users").doc(element).collection("requests").snapshots().map((querySnap) {
-          return querySnap.docs.map((docSnap) => RequestModel.fromSnapshot(docSnap)).toList();
-        });
-
-      while(true){
-        if(x == 0){
-          return l;
-        }
-      }*/
-      var x = a.forEach((element) {
-        //Logger().wtf(element);
-        var a2 = firestore.collection("users").doc(element).collection("requests").snapshots().map((querySnap) {
-          return querySnap.docs.map((docSnap) => RequestModel.fromSnapshot(docSnap)).toList();
-        });
-
-        Logger().wtf(a2.length);
-        l.addAll(a2);
-        /*a2.docs.forEach((element) {
-
-          var b = RequestModel.fromSnapshot(element);
-          Logger().wtf(b.date);
-          l.add(b);
-        });*/
-
-        /*await a2.docs.map((valued){
-          Logger().wtf("yjuyyu");
-          //var b = valued.docs.map((docSnap) => RequestModel.fromSnapshot(docSnap)).toList();
-          var b = RequestModel.fromSnapshot(valued);
-          l.add(b);
-        });*/
-        //Logger().wtf(firestore.collection("users").doc(element).collection("requests").snapshots().length);
-      });
-      Logger().wtf("fwef");
-      return l;
+    return noteCollectionRef.snapshots().map((querySnap) {
+      return querySnap.docs.map((docSnap) => RequestModel.fromSnapshot(docSnap))
+          .toList();
     });
-
-    /*get().then((value) {
-      return value.docs.forEach((doc) {
-        firestore.collection("users").doc(doc.id).collection("requests").snapshots().map((valued){
-          return valued.docs.map((docSnap) => RequestModel.fromSnapshot(docSnap)).toList();
-        });
-      });
-    });*/
-
-    /*return noteCollectionRef.snapshots().map((querySnap) {
-      return querySnap.docs.map((docSnap) => RequestModel.fromSnapshot(docSnap)).toList();
-    });*/
   }
 
+  @override
+  Future<List<RequestEntity>> getRequestsByProfession(List<String> professions) async {
+    List<RequestEntity> l = [];
+    var p1 = await firestore.collection("users").get();
+    for(var e in p1.docs){
+      var p2 = await firestore.collection("users").doc(e.id).collection('requests').get();
+      if(p2.size == 0)  continue;
+      for(var element in p2.docs){
+        l.add(RequestModel.fromSnapshot(element));
+      }
+    }
+    return l;
+  }
+  
   @override
   Future<bool> isSignIn() async => auth.currentUser?.uid !=null;
 
   @override
-  Future<void> signIn(UserEntity user) async =>
-      auth.signInWithEmailAndPassword(email: user.email!, password: user.password!);
+  Future<void> signIn(UserEntity user) async {
+    var x = auth;
+    try {
+      await auth.signInWithEmailAndPassword(email: user.email!, password: user.password!);
+    } on FirebaseAuthException catch(e){
+      var code = e.code;
+        Logger().i(code.toString());
+        return Future.error(code.toString());
+    }
+  }
+
 
   @override
-  Future<void> signOut()  async =>
-      auth.signOut();
+  Future<void> signOut()  async {
+    auth.signOut();
+    GoogleSignIn().signOut();
+  }
+
 
   @override
   Future<void> signUp(UserEntity user) async =>
@@ -170,21 +114,21 @@ class FirebaseRemoteDataSourceImpl implements FirebaseRemoteDataSource {
   Future<UserEntity> getCurrentUserInfo() async {
     final userCollectionRef = firestore.collection("users");
     final uid= await getCurrentUId();
-    return userCollectionRef.doc(uid).get().then((value){
-      //Logger().wtf(uid+"   "+UserModel.fromSnapshot(value).role!);
-      if (!value.exists){
-        return throw Error();
-      }
-
-      return  Future<UserEntity>.value(UserModel.fromSnapshot(value));
-    });
-    //return Future<UserEntity>.value(UserEntity());
+    final userRef = await userCollectionRef.doc(uid).get();
+    if (!userRef.exists){
+      Logger().wtf("jaja");
+      return Future<UserEntity>.value(UserModel(uid: "0000000000"));
+    }
+    return  Future<UserEntity>.value(UserModel.fromSnapshot(userRef));
   }
 
   @override
   Future<void> addNewRequest(RequestEntity requestEntity) async {
     final requestCollectionRef =
     firestore.collection("users").doc(requestEntity.uid).collection("requests");
+
+    final username = await firestore.collection("users").doc(requestEntity.uid).get();
+    var nyx = username.get("name").toString();
 
     final requestId = requestCollectionRef.doc().id;
 
@@ -198,7 +142,8 @@ class FirebaseRemoteDataSourceImpl implements FirebaseRemoteDataSource {
         trabajadorUid: requestEntity.trabajadorUid,
         ubication: requestEntity.ubication,
         uid: requestEntity.uid,
-        description: requestEntity.description
+        description: requestEntity.description,
+        clientName: nyx,
       ).toDocument();
 
       if (!request.exists) {
@@ -210,39 +155,106 @@ class FirebaseRemoteDataSourceImpl implements FirebaseRemoteDataSource {
     });
   }
 
-  /*@override
-  Stream<List<RequestEntity>> getRequestsByProfession(List<String> professions) {
-    CollectionReference usersRef = firestore.collection("users");
-    Query query = usersRef.where('role', isEqualTo: 'cliente');
-    
-    final noteCollectionRef=firestore.collection("users").doc(uid).collection("requests");
-    
-    query.get().then((querySnap) {
-      querySnap.docs.map((e){
-        Logger().wtf(e.data())
-      });
-    });
+  @override
+  Future<void> addNewApplicant(ApplicantEntity applicantEntity, RequestEntity requestEntity) async {
+    if(requestEntity.applicantsList!.contains(applicantEntity.workerId))  return;
 
-    return noteCollectionRef.snapshots().map((querySnap) {
-      return querySnap.docs.map((docSnap) => RequestModel.fromSnapshot(docSnap)).toList();
-    });
-  }*/
-      /*{
-      auth.createUserWithEmailAndPassword(email: user.email!, password: user.password!).then((value) async => {
-        await _createUserRegistered(UserEntity(uid: value.user?.uid, email: user.email, name: user.name, password: user.password, status: user.status))
-      })
-  };*/
+    final applicantCollectionRef = firestore.collection("applicants");
+    final applicantId = applicantCollectionRef.doc().id;
+
+    final username = await firestore.collection("users").doc(applicantEntity.workerId).get();
+    var nyx = username.get("name").toString();
+
+    final newApplicant = ApplicantModel(
+        status: applicantEntity.status,
+        availability: applicantEntity.availability,
+        clientId: applicantEntity.clientId,
+        description: applicantEntity.description,
+        profession: applicantEntity.profession,
+        requestId: applicantEntity.requestId,
+        salary: applicantEntity.salary,
+        workerId: applicantEntity.workerId,
+        aid: applicantId,
+        date: DateTime.now().toString(),
+      clientName: applicantEntity.clientName,
+      workerName: nyx
+    ).toDocument();
+
+    await applicantCollectionRef.doc(applicantId).set(newApplicant);
 
 
+    Logger().wtf("Mission 1 complete");
 
-  /*@override
-  Future<void> updateNote(NoteEntity note)async {
-    Map<String,dynamic> noteMap=Map();
-    final noteCollectionRef=firestore.collection("users").doc(note.uid).collection("notes");
+    Map<String,dynamic> requestMap = {};
 
-    if (note.note!=null) noteMap['note']=note.note;
-    if (note.time!=null) noteMap['time'] =note.time;
+    final requestCollectionRef = firestore.collection('users')
+        .doc(requestEntity.uid)
+        .collection('requests');
+        //.doc(requestEntity.requestId);
 
-    noteCollectionRef.doc(note.noteId).update(noteMap);
-  }*/
+    if (requestEntity.applicantsList != null) {
+      requestMap['applicantsList'] = [...?requestEntity.applicantsList, applicantEntity.workerId];
+    }
+
+    await requestCollectionRef.doc(requestEntity.requestId).update(requestMap);
+    requestEntity.applicantsList!.add(applicantEntity.workerId!);
+    Logger().wtf("Mission 2 complete");
+  }
+
+  @override
+  Future<void> saveCVFromProfessional(PlatformFile cvPdf, String uid) async {
+    final path = 'cv/$uid.pdf';
+    final file = File(cvPdf.path!);
+    final ref = FirebaseStorage.instance.ref().child(path);
+    ref.putFile(file);
+    return ;
+  }
+
+  @override
+  Future<List<ApplicantEntity>> getApplicantsByUserId(String userId) async {
+    List<ApplicantEntity> l = [];
+    var p1 = await firestore.collection("users").doc(userId).collection('requests').get();
+    List<String> requestIdFromuserList = [];
+    for(var k in p1.docs){
+      requestIdFromuserList.add(k.id);
+    }
+    if(requestIdFromuserList.isEmpty){
+      return l;
+    }
+
+    var p2 = await firestore.collection("applicants").where("requestId", whereIn: requestIdFromuserList).get();
+    for(var d in p2.docs){
+      ApplicantEntity temp = ApplicantModel.fromSnapshot(d);
+      l.add(temp);
+    }
+    return l;
+  }
+
+  @override
+  Future<List<ApplicantEntity>> getChatsFromApplicants(String userId) async {
+    List<ApplicantEntity> l = [];
+    var p1 = await firestore.collection("applicants").where("clientId", isEqualTo: userId).where('status', isEqualTo: 'C').get();
+    var p2 = await firestore.collection("applicants").where("workerId", isEqualTo: userId).where('status', isEqualTo: 'C').get();
+
+    for(var d in p1.docs){
+      ApplicantEntity temp = ApplicantModel.fromSnapshot(d);
+      l.add(temp);
+    }
+    for(var d in p2.docs){
+      ApplicantEntity temp = ApplicantModel.fromSnapshot(d);
+      l.add(temp);
+    }
+    return l;
+  }
+
+  @override
+  Future<void> contactApplicant(ApplicantEntity applicantEntity) async {
+    final applicantCollectionRef =
+    firestore.collection("applicants");
+
+    Map<String,dynamic> applicantMap = {};
+    applicantMap['status'] = "C";
+    await applicantCollectionRef.doc(applicantEntity.aid).update(applicantMap);
+  }
+
 }

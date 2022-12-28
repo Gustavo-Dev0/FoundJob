@@ -5,12 +5,18 @@ import 'package:work_app/src/data/remote/data_sources/firebase_remote_data_sourc
 import 'package:work_app/src/data/remote/data_sources/firebase_remote_data_source_impl.dart';
 import 'package:work_app/src/data/repositories/firebase_repository_impl.dart';
 import 'package:work_app/src/domain/repositories/firebase_repository.dart';
+import 'package:work_app/src/domain/use_cases/add_new_applicant_usecase.dart';
 import 'package:work_app/src/domain/use_cases/add_new_request_usecase.dart';
+import 'package:work_app/src/domain/use_cases/contact_applicant_usercase.dart';
+import 'package:work_app/src/domain/use_cases/get_applicants_by_user_id_usercase.dart';
+import 'package:work_app/src/domain/use_cases/get_chats_from_applicants_usercase.dart';
 import 'package:work_app/src/domain/use_cases/get_create_current_user_usecase.dart';
 import 'package:work_app/src/domain/use_cases/get_current_uid_usecase.dart';
 import 'package:work_app/src/domain/use_cases/get_current_user_info_usecase.dart';
+import 'package:work_app/src/domain/use_cases/get_requests_by_professions_usercase.dart';
 import 'package:work_app/src/domain/use_cases/get_requests_usercase.dart';
 import 'package:work_app/src/domain/use_cases/is_sign_in_usecase.dart';
+import 'package:work_app/src/domain/use_cases/save_cv_usercase.dart';
 import 'package:work_app/src/domain/use_cases/sign_in_usecase.dart';
 import 'package:work_app/src/domain/use_cases/sign_out_usecase.dart';
 import 'package:work_app/src/domain/use_cases/sign_up_usecase.dart';
@@ -33,22 +39,25 @@ Future<void> init() async {
     getCreateCurrentUserUseCase: sl.call(),
     signInUseCase: sl.call(),
     signUPUseCase: sl.call(),
+    getCurrentUidUseCase: sl.call(),
+    saveCVUseCase: sl.call()
   ));
   sl.registerFactory<RequestCubit>(() => RequestCubit(
     addNewRequestUseCase: sl.call(),
-    getRequestsUseCase: sl.call()
+    getRequestsUseCase: sl.call(),
+    getRequestsByProfessionUseCase: sl.call(),
+    addNewApplicantUseCase: sl.call(),
+    getApplicantsByUserIdUseCase: sl.call(),
+    getChatsFromApplicantsUseCase: sl.call(),
+    contactApplicantUserCase: sl.call()
   ));
-  /*sl.registerFactory<NoteCubit>(() => NoteCubit(
-    updateNoteUseCase: sl.call(),
-    getNotesUseCase: sl.call(),
-    deleteNoteUseCase: sl.call(),
-    addNewNoteUseCase: sl.call(),
-  ));*/
   sl.registerFactory<ProfileCubit>(() => ProfileCubit(
     getCurrentUserInfoUseCase: sl.call(),
   ));
 
-  //useCase
+
+
+
   sl.registerLazySingleton<AddNewRequestUseCase>(
           () => AddNewRequestUseCase(repository: sl.call()));
   /*sl.registerLazySingleton<DeleteNoteUseCase>(
@@ -69,6 +78,19 @@ Future<void> init() async {
           () => SignOutUseCase(repository: sl.call()));
   sl.registerLazySingleton<SignUPUseCase>(
           () => SignUPUseCase(repository: sl.call()));
+  sl.registerLazySingleton<GetRequestsByProfessionUseCase>(
+          () => GetRequestsByProfessionUseCase(repository: sl.call()));
+  sl.registerLazySingleton<SaveCVUseCase>(
+          () => SaveCVUseCase(repository: sl.call()));
+  sl.registerLazySingleton<AddNewApplicantUseCase>(
+      () => AddNewApplicantUseCase(repository: sl.call()));
+  sl.registerLazySingleton<GetApplicantsByUserIdUseCase>(
+          () => GetApplicantsByUserIdUseCase(repository: sl.call()));
+  sl.registerLazySingleton<GetChatsFromApplicantsUseCase>(
+          () => GetChatsFromApplicantsUseCase(repository: sl.call()));
+
+  sl.registerLazySingleton<ContactApplicantUseCase>(
+          () => ContactApplicantUseCase(repository: sl.call()));
   /*sl.registerLazySingleton<UpdateNoteUseCase>(
           () => UpdateNoteUseCase(repository: sl.call()));*/
 

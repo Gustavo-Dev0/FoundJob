@@ -6,18 +6,21 @@ import 'package:geocoding/geocoding.dart';
 import 'package:intl/intl.dart';
 import 'package:logger/logger.dart';
 import 'package:toggle_switch/toggle_switch.dart';
+import 'package:work_app/src/domain/entities/applicant_entity.dart';
 import 'package:work_app/src/domain/entities/request_entity.dart';
 import 'package:work_app/src/presentation/cubit/request/request_cubit.dart';
+import 'package:work_app/src/presentation/pages/chat_body_page.dart';
 
 import 'main_page.dart';
 
-class RequestsMadePage extends StatefulWidget {
+class ChatPage extends StatefulWidget {
   static String id = 'requests_page';
   final String uid;
-  const RequestsMadePage({Key? key,required this.uid}) : super(key: key);
+  final bool isClient;
+  const ChatPage({Key? key,required this.uid, required this.isClient}) : super(key: key);
 
   @override
-  _RequestsMadePageState createState() => _RequestsMadePageState();
+  _ChatPageState createState() => _ChatPageState();
 }
 
 final List<RequestJob> list2 = {
@@ -28,13 +31,13 @@ final List<RequestJob> list2 = {
 
 } as List<RequestJob>;
 
-class _RequestsMadePageState extends State<RequestsMadePage> {
+class _ChatPageState extends State<ChatPage> {
   late List<RequestJob> listRequestsJob;
 
   @override
   void initState() {
     //Logger().wtf(widget.uid);
-    BlocProvider.of<RequestCubit>(context).getRequests(uid: widget.uid);
+    BlocProvider.of<RequestCubit>(context).getChatsFromApplicants(uid: widget.uid);
     super.initState();
   }
 
@@ -52,38 +55,38 @@ class _RequestsMadePageState extends State<RequestsMadePage> {
         child: Scaffold(
           //backgroundColor: Colors.red,
           body: BlocBuilder<RequestCubit, RequestState>(
-            builder: (context, requestState){
-              if(requestState is RequestLoaded){
+            builder: (context, applicantsState){
+              if(applicantsState is ApplicantLoaded){
                 //Logger().wtf(requestState.requests.length);
                 return SingleChildScrollView(
                   child: Column(
                     children: [
                       const SizedBox(height: 20.0),
-                      Text("Solicitudes realizadas", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20.0)),
+                      Text("Chats aceptados", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20.0)),
                       const SizedBox(height: 8.0),
-                      Text("Personas que solicitaste", style: TextStyle(fontSize: 12.0)),
+                      Text("Personas que aceptaste", style: TextStyle(fontSize: 12.0)),
                       const SizedBox(height: 8.0),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text("Disponibilidad: ", style: TextStyle(fontSize: 10.0)),
                           Icon(Icons.circle, color: Colors.green,),
-                          Text("Atendido", style: TextStyle(fontSize: 10.0)),
+                          Text("Inmediata", style: TextStyle(fontSize: 10.0)),
                           Icon(Icons.circle, color: Colors.yellow,),
-                          Text("Pendiente", style: TextStyle(fontSize: 10.0)),
+                          Text("Negociable", style: TextStyle(fontSize: 10.0)),
                           Icon(Icons.circle, color: Colors.red,),
-                          Text("Cancelado", style: TextStyle(fontSize: 10.0)),
+                          Text("Baja", style: TextStyle(fontSize: 10.0)),
                         ],
                       ),
 
                       const SizedBox(height: 20.0),
-                      requestState.requests.isEmpty?_noRequestsWidget():ListView.builder(
+                      applicantsState.applicants.isEmpty?_noRequestsWidget():ListView.builder(
                           scrollDirection: Axis.vertical,
                           shrinkWrap: true,
-                          physics: const ScrollPhysics(),
-                          itemCount: requestState.requests.length,
+                          physics: ScrollPhysics(),
+                          itemCount: applicantsState.applicants.length,
                           itemBuilder: (context, index) {
-                            return CardRequest(requestState.requests[index]);
+                            return CardRequest(applicantsState.applicants[index], widget.uid, widget.isClient);
                           }
                       ),
                     ],
@@ -108,10 +111,14 @@ class _RequestsMadePageState extends State<RequestsMadePage> {
           SizedBox(
             height: 10,
           ),
-          Text("No has solicitado ningún trabajador aún"),
+          Text("No hay chats aún"),
         ],
       ),
     );
+  }
+
+  void goIntoChat(String chatId){
+
   }
 
 }
@@ -119,9 +126,11 @@ class _RequestsMadePageState extends State<RequestsMadePage> {
 const List<String> list = <String>['Profesor', 'Carpinero', 'Pintor'];
 
 class CardRequest extends StatefulWidget {
-  final RequestEntity itemRJ;
+  final ApplicantEntity itemRJ;
+  final String uId;
+  final bool isClient;
 
-  const CardRequest(this.itemRJ, {super.key});
+  const CardRequest(this.itemRJ, this.uId, this.isClient, {super.key});
   //const CardRequest({Key? key}) : super(key: key);
 
   @override
@@ -134,49 +143,65 @@ class _CardRequestState extends State<CardRequest> {
 
   @override
   Widget build(BuildContext context) {
-
+    DateTime d = DateTime.parse(widget.itemRJ.date!);
+    print(d);
     return Container(
       padding: EdgeInsets.fromLTRB(20,10,20,0),
       height: 110,
       width: double.maxFinite,
-      child: Card(
-        elevation: 5,
-        color: Color(0xffF3E8D7),
-        child: Row(
-          children: [
-            Expanded(
-              flex: 1, // 20%
-              child: _buildState()
-            ),
-            Expanded(
-                flex: 6,
-                child: Padding(
-                    padding: const EdgeInsets.all(10),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(widget.itemRJ.profession!+"", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20.0),),
-                                  Text(widget.itemRJ.date!+"")
-                                ],
-                              ),
-                              Text(ubic)
+      child: GestureDetector(
+        onTap: (){
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => ChatBodyPage(email: widget.uId, applicantId: widget.itemRJ.aid!,isClient: widget.isClient,)));
+        },
+        child: Card(
+          elevation: 5,
+          color: Color(0xffF3E8D7),
+          child: Row(
+            children: [
+              Expanded(
+                flex: 1, // 20%
+                child: _buildState()
+              ),
+              Expanded(
+                  flex: 6,
+                  child: Padding(
+                      padding: const EdgeInsets.all(10),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(widget.isClient?widget.itemRJ.workerName!:widget.itemRJ.clientName!, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20.0),),
+                                    Text(d.day.toString()+"/"+d.month.toString()+"/"+d.year.toString()+" "+d.hour.toString() + ":" + d.minute.toString(),)
+                                  ],
+                                ),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    //Text(widget.isClient?widget.itemRJ.workerName!:widget.itemRJ.clientName!, style: TextStyle(fontSize: 14.0),),
+                                    Text(widget.itemRJ.profession!, style: TextStyle(fontSize: 14.0),),
+                                    //Text(d.day.toString()+"/"+d.month.toString()+"/"+d.year.toString()+" "+d.hour.toString() + ":" + d.minute.toString(),)
+                                  ],
+                                ),
+                                //Text(ubic)
 
-                            ],
-                          )
-                          ,)
-                      ],
-                    )
-                )
-            ),
+                              ],
+                            )
+                            ,)
+                        ],
+                      )
+                  )
+              ),
 
-          ],
+            ],
+          ),
         ),
       ),
 
@@ -194,12 +219,12 @@ class _CardRequestState extends State<CardRequest> {
     }
 
   Widget _buildState(){
-    getAddress(widget.itemRJ.ubication!);
-    if (widget.itemRJ.status == "A") {
+    //getAddress(widget.itemRJ.ubication!);
+    if (widget.itemRJ.availability == "Inmediata") {
       return Icon(Icons.circle, color: Colors.green,);
     }
 
-    if (widget.itemRJ.status == "P") {
+    if (widget.itemRJ.availability == "Negociable") {
       return Icon(Icons.circle, color: Colors.yellow,);
     }
 

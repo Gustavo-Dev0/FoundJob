@@ -1,6 +1,8 @@
 
+import 'package:file_picker/file_picker.dart';
 import 'package:work_app/src/domain/entities/request_entity.dart';
 
+import '../../domain/entities/applicant_entity.dart';
 import '../../domain/entities/user_entity.dart';
 import '../../domain/repositories/firebase_repository.dart';
 import '../remote/data_sources/firebase_remote_data_source.dart';
@@ -59,8 +61,31 @@ class FirebaseRepositoryImpl extends FirebaseRepository{
   @override
   Stream<List<RequestEntity>> getRequests(String uid) =>
       remoteDataSource.getRequests(uid);
+
+  @override
+  Future<List<RequestEntity>> getRequestsByProfession(List<String> professions) =>
+    remoteDataSource.getRequestsByProfession(professions);
+
   /*@override
   Future<void> updateNote(NoteEntity note) async =>
       remoteDataSource.updateNote(note);
 */
+  @override
+  Future<void> saveCVFromProfessional(PlatformFile cvPdf, String uid) =>
+      remoteDataSource.saveCVFromProfessional(cvPdf, uid);
+
+  @override
+  Future<void> addNewApplicant(ApplicantEntity applicantEntity, RequestEntity requestEntity) =>
+      remoteDataSource.addNewApplicant(applicantEntity, requestEntity);
+
+  @override
+  Future<List<ApplicantEntity>> getApplicantsByUserId(String userId) =>
+      remoteDataSource.getApplicantsByUserId(userId);
+
+  @override
+  Future<List<ApplicantEntity>> getChatsFromApplicants(String userId) =>
+      remoteDataSource.getChatsFromApplicants(userId);
+  @override
+  Future<void> contactApplicant(ApplicantEntity applicantEntity) =>
+      remoteDataSource.contactApplicant(applicantEntity);
 }

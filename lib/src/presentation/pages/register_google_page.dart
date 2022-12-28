@@ -11,14 +11,14 @@ import '../cubit/user/user_cubit.dart';
 import 'main_page.dart';
 import 'main_page_professional.dart';
 
-class RegisterPage extends StatefulWidget {
+class RegisterGooglePage extends StatefulWidget {
   static String id = 'login_page';
 
   @override
-  _RegisterPageState createState() => _RegisterPageState();
+  _RegisterGooglePageState createState() => _RegisterGooglePageState();
 }
 
-class _RegisterPageState extends State<RegisterPage> {
+class _RegisterGooglePageState extends State<RegisterGooglePage> {
 
   TextEditingController _nameController = TextEditingController();
   TextEditingController _emailController = TextEditingController();
@@ -95,8 +95,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   );
                 }
               },
-            )
-
+            ),
         ));
   }
 
@@ -105,6 +104,7 @@ class _RegisterPageState extends State<RegisterPage> {
       child: SingleChildScrollView(
         child: Column(
           children: [
+
             const SizedBox(height: 20.0),
             Container(
                 alignment: Alignment.center,
@@ -122,6 +122,12 @@ class _RegisterPageState extends State<RegisterPage> {
                 )),
             const SizedBox(height: 15.0),
             Image.asset('assets/images/logo.png', height: 140),
+            const SizedBox(height: 25.0),
+            const Text("¡Ya estás registrado!", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
+            const SizedBox(height: 10.0),
+            const Divider(),
+            const SizedBox(height: 10.0),
+            const Text("Elige tu rol:", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
             const SizedBox(height: 15.0),
             SizedBox(
               height: 40,
@@ -145,12 +151,6 @@ class _RegisterPageState extends State<RegisterPage> {
               ),
             ),
             const SizedBox(height: 15.0),
-            const SizedBox(height: 15.0),
-            _nameTextField(),
-            const SizedBox(height: 15.0),
-            _userTextField(),
-            const SizedBox(height: 15.0),
-            _passwordTextField(),
             if(_isProfessional) const SizedBox(height: 15.0),
             if(_isProfessional) const SizedBox(height: 15.0),
             if(_isProfessional) _degreeCodeTextField(),
@@ -160,33 +160,16 @@ class _RegisterPageState extends State<RegisterPage> {
             const SizedBox(height: 20.0),
             _buttonRegister(),
             const SizedBox(height: 20.0),
-            Row(
-                children: const [
-                  Expanded(
-                      child: Divider(
-                          thickness: 2,
-                          color: Colors.black,
-                          indent: 40
-                      )
-                  ),
-                  Text("   O   "),
-                  Expanded(
-                      child: Divider(
-                          thickness: 2,
-                          color: Colors.black,
-                          endIndent: 40
-                      )
-                  ),
-                ]
-            ),
-            const SizedBox(height: 25.0),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: const [
-                Text('Continuar con Google. ', textAlign: TextAlign.right, ),
-              ],
-            ),
+            TextButton(
+              style: ButtonStyle(
+                //backgroundColor: MaterialStatePropertyAll<Color>(Colors.red),
+              ),
 
+              onPressed: () {
+                BlocProvider.of<AuthCubit>(context).loggedOut();
+              },
+              child: const Text('Cerrar sesión', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold, fontSize: 14),),
+            ),
           ],
         ),
       ),
@@ -315,37 +298,6 @@ class _RegisterPageState extends State<RegisterPage> {
     );
   }
 
-
-  Widget _nameTextField() {
-    return StreamBuilder(
-      builder: (BuildContext context, AsyncSnapshot snapshot) {
-        return Container(
-            padding: EdgeInsets.symmetric(horizontal: 40.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Text('Nombres', textAlign: TextAlign.left, textScaleFactor: 1.2,),
-                SizedBox(height: 8.0),
-                TextField(
-                  decoration: const InputDecoration(
-                    contentPadding: EdgeInsets.symmetric(vertical: 10.0),
-                    prefixIcon: Icon(Icons.person),
-                    hintText: 'Nombres',
-                    //labelText: "Correo",
-                    border: OutlineInputBorder(
-                      borderRadius: const BorderRadius.all(
-                        Radius.circular(40.0),
-                      ),
-                    ),
-                  ),
-                  controller: _nameController,
-                ),
-
-              ],
-            ));
-      },
-    );
-  }
   Widget _degreeCodeTextField() {
     return StreamBuilder(
       builder: (BuildContext context, AsyncSnapshot snapshot) {
@@ -369,38 +321,6 @@ class _RegisterPageState extends State<RegisterPage> {
                     ),
                   ),
                   controller: _degreeCodeController,
-                ),
-
-              ],
-            ));
-      },
-    );
-  }
-
-  Widget _userTextField() {
-    return StreamBuilder(
-      builder: (BuildContext context, AsyncSnapshot snapshot) {
-        return Container(
-            padding: EdgeInsets.symmetric(horizontal: 40.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Text('Correo Electrónico', textAlign: TextAlign.left, textScaleFactor: 1.2,),
-                SizedBox(height: 8.0),
-                TextField(
-                  keyboardType: TextInputType.emailAddress,
-                  decoration: const InputDecoration(
-                    contentPadding: EdgeInsets.symmetric(vertical: 10.0),
-                    prefixIcon: Icon(Icons.email),
-                    hintText: 'ejemplo@com.com',
-                    //labelText: "Correo",
-                    border: OutlineInputBorder(
-                      borderRadius: const BorderRadius.all(
-                        Radius.circular(40.0),
-                      ),
-                    ),
-                  ),
-                  controller: _emailController,
                 ),
 
               ],
@@ -453,38 +373,6 @@ class _RegisterPageState extends State<RegisterPage> {
     });
   }
 
-  Widget _passwordTextField() {
-    return StreamBuilder(
-      builder: (BuildContext context, AsyncSnapshot snapshot) {
-        return Container(
-          padding: const EdgeInsets.symmetric(horizontal: 40.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text('Contraseña', textAlign: TextAlign.left, textScaleFactor: 1.2,),
-              SizedBox(height: 8.0),
-              TextField(
-                obscureText: true,
-                decoration: const InputDecoration(
-                    contentPadding: EdgeInsets.symmetric(vertical: 10.0),
-                    prefixIcon: Icon(Icons.lock),
-                    suffixIcon: Icon(Icons.remove_red_eye_sharp),
-                    hintText: 'Contraseña',
-                    //labelText: "Contraseña"
-                    border: OutlineInputBorder(
-                      borderRadius: const BorderRadius.all(
-                        Radius.circular(40.0),
-                      ),
-                    ),
-                ),
-                controller: _passwordController,
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
 
   Widget _buttonRegister() {
     return StreamBuilder(
@@ -492,7 +380,7 @@ class _RegisterPageState extends State<RegisterPage> {
         return ElevatedButton(
           child: Container(
             padding: EdgeInsets.symmetric(horizontal: 50.0, vertical: 15.0),
-            child: Text('Registrarme', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),),
+            child: Text(_isProfessional ? "Continuar como trabajador" : "Continuar como cliente", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),),
           ),
           style: ElevatedButton.styleFrom(
             //padding: EdgeInsets.symmetric(horizontal: 40.0, vertical: 20.0),
@@ -503,10 +391,6 @@ class _RegisterPageState extends State<RegisterPage> {
           ),
           onPressed: () {
             submitSignUp();
-            /*Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => MainPage()),
-            );*/
           },
         );
       },
@@ -514,52 +398,36 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 
   Future<void> submitSignUp() async {
-    if (_emailController.text.isNotEmpty &&
-        _passwordController.text.isNotEmpty) {
-      if(_isProfessional){
-        if(pickedFile.name == "") {
-          Fluttertoast.showToast(
-              msg: "Agregue CV",
-              toastLength: Toast.LENGTH_SHORT,
-              gravity: ToastGravity.BOTTOM,
-              timeInSecForIosWeb: 1,
-              backgroundColor: Colors.red,
-              textColor: Colors.white,
-              fontSize: 16.0
-          );
-          return;
-        }else if(_professionList.isEmpty){
-          Fluttertoast.showToast(
-              msg: "Agregue al menos una profesion/ocupación",
-              toastLength: Toast.LENGTH_SHORT,
-              gravity: ToastGravity.BOTTOM,
-              timeInSecForIosWeb: 1,
-              backgroundColor: Colors.red,
-              textColor: Colors.white,
-              fontSize: 16.0
-          );
-          return;
-        }
+    if(_isProfessional){
+      if(pickedFile.name == "") {
+        Fluttertoast.showToast(
+            msg: "Agregue CV",
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.BOTTOM,
+            timeInSecForIosWeb: 1,
+            backgroundColor: Colors.red,
+            textColor: Colors.white,
+            fontSize: 16.0
+        );
+        return;
       }
-      await BlocProvider.of<UserCubit>(context).submitSignUp(user: UserEntity(
-        name: _nameController.text,
-        email: _emailController.text,
-        password: _passwordController.text,
-        role: _isProfessional ? "trabajador" : "cliente" ,
-        degreeCode: _degreeCodeController.text,
-
-      ), file2: pickedFile);
-    }else{
-      Fluttertoast.showToast(
-          msg: "Llene todos los campos requeridos",
-          toastLength: Toast.LENGTH_SHORT,
-          gravity: ToastGravity.BOTTOM,
-          timeInSecForIosWeb: 1,
-          backgroundColor: Colors.red,
-          textColor: Colors.white,
-          fontSize: 16.0
-      );
+      else if(_professionList.isEmpty){
+        Fluttertoast.showToast(
+            msg: "Agregue al menos una profesion/ocupación",
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.BOTTOM,
+            timeInSecForIosWeb: 1,
+            backgroundColor: Colors.red,
+            textColor: Colors.white,
+            fontSize: 16.0
+        );
+        return;
+      }
     }
+    await BlocProvider.of<UserCubit>(context).submitGoogleSignUp(user: UserEntity(
+      role: _isProfessional ? "trabajador" : "cliente" ,
+      degreeCode: _degreeCodeController.text,
+    ), file2: pickedFile);
   }
 
 

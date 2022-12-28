@@ -10,9 +10,11 @@ class RequestEntity extends Equatable {
   final String? trabajadorUid;
   final String? requestId;
   final String? description;
+  final String? clientName;
+  final List<String>? applicantsList;
 
 
-  const RequestEntity({
+  RequestEntity({
       this.profession,
       this.ubication,
       this.uid,
@@ -20,7 +22,9 @@ class RequestEntity extends Equatable {
       this.date,
       this.trabajadorUid,
       this.requestId,
-      this.description
+      this.description,
+      this.clientName,
+      this.applicantsList = const []
   });
 
   @override
@@ -33,6 +37,8 @@ class RequestEntity extends Equatable {
     date,
     trabajadorUid,
     requestId,
-    description
+    description,
+    clientName,
+    applicantsList
   ];
 }

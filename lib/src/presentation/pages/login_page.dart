@@ -1,8 +1,13 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:logger/logger.dart';
 import 'package:toggle_switch/toggle_switch.dart';
+import 'package:work_app/src/presentation/pages/register_google_page.dart';
 import 'package:work_app/src/presentation/pages/register_page.dart';
 
 import '../../domain/entities/user_entity.dart';
@@ -43,35 +48,47 @@ class _LoginPageState extends State<LoginPage> {
                 return BlocBuilder<AuthCubit,AuthState>(builder:(context,authState){
 
                   if (authState is Authenticated){
-                    /*if(authState.profile.status == "trabajador"){
-                      return MainProfessionalPage();
-                    }else{*/
-                    //String role = "wefwefwefwefwefwefwefwefwefwef";
-                    //BlocProvider.of<ProfileCubit>(context).getCurrentUserInfoDirect().then((value) {
-                     // role = value.role!;
-                      //Logger().wtf("ESto debe ser primero");
-                    //});
-                    //Logger().wtf(role);
-                    //return _bodyWidget();
-                    if(authState.profile.role == "cliente")
-                      return MainPage(uid: authState.uid);
-                    return MainProfessionalPage();
-                    /*}*/
-                    return _bodyWidget();
+                    if(authState.profile.role == "cliente") {
+                      Navigator.pushReplacement<void, void>(
+                        context,
+                        MaterialPageRoute<void>(
+                          builder: (BuildContext context) => MainPage(uid: authState.uid),
+                        ),
+                      );
 
-                  }else{
+                      return MainPage(uid: authState.uid);
+                    }
+                    Navigator.pushReplacement<void, void>(
+                      context,
+                      MaterialPageRoute<void>(
+                        builder: (BuildContext context) => MainProfessionalPage(uid: authState.uid)
+                      ),
+                    );
+                    return MainProfessionalPage(uid: authState.uid);
+
+                  }
+                  if (authState is AuthenticatedWithoutRegister){
+                    Navigator.pushReplacement<void, void>(
+                      context,
+                      MaterialPageRoute<void>(
+                          builder: (BuildContext context) => RegisterGooglePage()
+                      ),
+                    );
+                    return RegisterGooglePage();
+                  }
+                  if (authState is UnAuthenticated){
                     return _bodyWidget();
                   }
+
+                  return _bodyWidget();
+
+
                 });
               }
               return _bodyWidget();
             },
             listener: (context,userState){
               if (userState is UserSuccess){
-
-                //Logger().wtf(userState.props.isEmpty);
-
-
                 BlocProvider.of<AuthCubit>(context).loggedIn();
                 /*Fluttertoast.showToast(
                     msg: "Usuario logueado",
@@ -84,16 +101,16 @@ class _LoginPageState extends State<LoginPage> {
                 );*/
               }
               if (userState is UserFailure){
-                //snackBarError(msg: "invalid email",scaffoldState: _scaffoldGlobalKey);
-                /*Fluttertoast.showToast(
-                    msg: "invalid email",
+
+                Fluttertoast.showToast(
+                    msg: userState.error,
                     toastLength: Toast.LENGTH_SHORT,
                     gravity: ToastGravity.BOTTOM,
                     timeInSecForIosWeb: 1,
                     backgroundColor: Colors.red,
                     textColor: Colors.white,
                     fontSize: 16.0
-                );*/
+                );
               }
             },
           )
@@ -151,6 +168,10 @@ class _LoginPageState extends State<LoginPage> {
             _passwordTextField(),
             const SizedBox(height: 20.0),
             _buttonLogin(),
+            const SizedBox(height: 15.0),
+            _googleLogin(),
+            const SizedBox(height: 10.0),
+            _facebookLogin(),
             //_buttonLogin2(),
             const SizedBox(height: 25.0),
             Row(
@@ -256,8 +277,8 @@ class _LoginPageState extends State<LoginPage> {
             ),
             backgroundColor: Colors.orange,
           ),
-          onPressed: () {
-            submitSignIn();
+          onPressed: () async {
+            await submitSignIn();
             /*Navigator.push(
               context,
               MaterialPageRoute(builder: (context) => MainPage()),
@@ -271,42 +292,110 @@ class _LoginPageState extends State<LoginPage> {
       },
     );
   }
-  Widget _buttonLogin2() {
+
+  Widget _googleLogin() {
     return StreamBuilder(
       builder: (BuildContext context, AsyncSnapshot snapshot) {
-        return ElevatedButton(
+        return ElevatedButton.icon(
           style: ElevatedButton.styleFrom(
             //padding: EdgeInsets.symmetric(horizontal: 40.0, vertical: 20.0),
             shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(10.0)
             ),
-            backgroundColor: Colors.orange,
+            backgroundColor: Colors.white70,
           ),
-          onPressed: () {
-            BlocProvider.of<AuthCubit>(context).loggedOut();
-            /*Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => MainProfessionalPage()),
-            );*/
+          onPressed: () async {
+            await submitGoogleSignIn();
           },
-          child: Container(
+          label: Container(
             padding: const EdgeInsets.symmetric(horizontal: 50.0, vertical: 15.0),
-            child: const Text('Ingresar Profesional', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),),
+            child: const Text('Continuar con Google', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.black),),
+          ), icon: Image.network(
+            'http://pngimg.com/uploads/google/google_PNG19635.png',
+            fit:BoxFit.cover,height: 25,
+        ) ,
+
+        );
+      },
+    );
+  }
+  Widget _facebookLogin() {
+    return StreamBuilder(
+      builder: (BuildContext context, AsyncSnapshot snapshot) {
+        return ElevatedButton.icon(
+          style: ElevatedButton.styleFrom(
+            //padding: EdgeInsets.symmetric(horizontal: 40.0, vertical: 20.0),
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10.0)
+            ),
+            backgroundColor: Colors.lightBlueAccent,
           ),
+          onPressed: () async {
+            await submitFacebookSign();
+          },
+          label: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 50.0, vertical: 15.0),
+            child: const Text('Continuar con Facebook', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.black),),
+          ), icon: Image.network(
+          'https://cdn.iconscout.com/icon/free/png-256/facebook-logo-2019-1597680-1350125.png',
+          fit:BoxFit.cover,height: 25,
+        ) ,
+
         );
       },
     );
   }
 
-
-  void submitSignIn() {
+  Future<void> submitSignIn() async {
     if (_emailController.text.isNotEmpty &&
         _passwordController.text.isNotEmpty) {
-      BlocProvider.of<UserCubit>(context).submitSignIn(user: UserEntity(
+      await BlocProvider.of<UserCubit>(context).submitSignIn(user: UserEntity(
         email: _emailController.text,
         password: _passwordController.text,
       ));
+    }
+  }
+
+  Future<void> submitGoogleSignIn() async {
+
+    final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
+    final GoogleSignInAuthentication? googleAuth = await googleUser?.authentication;
+    final credential = GoogleAuthProvider.credential(
+      accessToken: googleAuth?.accessToken,
+      idToken: googleAuth?.idToken,
+    );
+    var uC = await FirebaseAuth.instance.signInWithCredential(credential);
+    try{
+      if (true) {
+        await BlocProvider.of<UserCubit>(context).submitGoogleSignIn();
+        await BlocProvider.of<AuthCubit>(context).appStarted();
+      }
+
+    }catch(e){
+      Logger().wtf(e.toString());
+    }
+  }
+
+  Future<void> submitFacebookSign() async {
+    // Trigger the sign-in flow
+    try{
+      final LoginResult loginResult = await FacebookAuth.instance.login();
+
+      if(loginResult.status == LoginStatus.success){
+        print(loginResult.accessToken);
+      }else{
+        print(loginResult.status);
+        print(loginResult.message);
+      }
+
+      // Create a credential from the access token
+      /*final OAuthCredential facebookAuthCredential = FacebookAuthProvider.credential(loginResult.accessToken!.token);
+
+      // Once signed in, return the UserCredential
+      var f = await FirebaseAuth.instance.signInWithCredential(facebookAuthCredential);*/
+    } catch(_){
 
     }
+
   }
 }

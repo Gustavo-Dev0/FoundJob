@@ -49,6 +49,11 @@ dependencies:
   logger: ^1.1.0
   google_maps_flutter: ^2.2.2
   geocoding: ^2.0.5
+  file_picker: ^5.2.4
+  firebase_storage: ^11.0.9
+  google_sign_in: ^5.4.2
+  geolocator: ^9.0.2
+  flutter_facebook_auth: ^5.0.7
 
 dev_dependencies:
   flutter_test:

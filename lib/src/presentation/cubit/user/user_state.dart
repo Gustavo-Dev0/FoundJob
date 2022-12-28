@@ -15,6 +15,11 @@ class UserLoading extends UserState {
   List<Object> get props => [];
 }
 class UserFailure extends UserState {
+
+  final String error;
+
+  UserFailure({required this.error});
+
   @override
   List<Object> get props => [];
 }

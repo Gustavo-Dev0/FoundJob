@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:logger/logger.dart';
@@ -22,47 +24,35 @@ class RequestsPage extends StatefulWidget {
 }
 
 class _RequestsPageState extends State<RequestsPage> {
-  TextEditingController _dateController = TextEditingController();
-  TextEditingController _detailTextController = TextEditingController();
+  final TextEditingController _dateController = TextEditingController();
+  final TextEditingController _detailTextController = TextEditingController();
+  TextEditingController _professionEditingController = TextEditingController();
   late GoogleMapController mapController;
-  Marker marker = Marker(
-    markerId: MarkerId('1'),
-    position: LatLng(45.497240543179444, -122.65883076936007),
-    //icon: BitmapDescriptor.,
-    infoWindow: InfoWindow(
-      title: 'title',
-      snippet: 'address',
-    ),
-  );
-  final LatLng _center = const LatLng(45.521563, -122.677433);
-
-
-  void _onMapCreated(GoogleMapController controller) {
-    mapController = controller;
-  }
-
-  void _add(LatLng ubication) {
-    //Logger().wtf(ubication.toString());
-    Marker tmp = Marker(
-      markerId: MarkerId('2'),
-      position: ubication,
-      //icon: BitmapDescriptor.,
-      infoWindow: InfoWindow(
-        title: 'title',
-        snippet: 'address',
-      ),
-    );
-    setState(() {
-      marker=tmp;
-    });
-    Logger().wtf(marker.position.toString());
-  }
-
-  int _indexProfessionSelected = 0;
+  String _professionValue = "";
+  Marker? marker = null;
+  LatLng _center = const LatLng(-16.404214, -71.541073);
+  bool isFineLocation = true;
   String _dropdownValue = list.first;
+
+
+  @override
+  void initState() {
+    super.initState();
+    var x = getUserCurrentLocation();
+  }
 
   @override
   Widget build(BuildContext context) {
+    if(isFineLocation){
+      var x = getUserCurrentLocation();
+      x.then((value) {
+        //Logger().w(value.toString());
+        setState(() {
+          _center = LatLng(value.latitude, value.longitude);
+          isFineLocation = false;
+        });
+      });
+    }
     return SafeArea(
         child: Scaffold(
           //backgroundColror: Colors.red,
@@ -75,10 +65,12 @@ class _RequestsPageState extends State<RequestsPage> {
                 Text("Solicitud de servicio", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20.0)),
                 const SizedBox(height: 8.0),
                 Text("Especifica el tipo de profesional que buscas", style: TextStyle(fontSize: 12.0)),
+                //const SizedBox(height: 15.0),
+                //_professionDropdown(),
                 const SizedBox(height: 15.0),
-                _professionDropdown(),
+                _dateJobTextField(),
                 const SizedBox(height: 15.0),
-                _datebirthTextField(),
+                _professionAutocompleteTextField(),
                 const SizedBox(height: 15.0),
                 _buttonUbication(),
                 const SizedBox(height: 15.0),
@@ -96,6 +88,110 @@ class _RequestsPageState extends State<RequestsPage> {
       )
       );
   }
+
+  Future<Position> getUserCurrentLocation() async {
+    await Geolocator.requestPermission().then((value){
+    }).onError((error, stackTrace) async {
+      await Geolocator.requestPermission();
+      print("ERROR"+error.toString());
+    });
+    return await Geolocator.getCurrentPosition();
+  }
+  void _onMapCreated(GoogleMapController controller) {
+    mapController = controller;
+  }
+
+  void _add(LatLng ubication) {
+    //Logger().wtf(ubication.toString());
+    Marker tmp = Marker(
+      markerId: MarkerId('9'),
+      position: ubication,
+      //icon: BitmapDescriptor.,
+      infoWindow: InfoWindow(
+        title: 'title',
+        snippet: 'address',
+      ),
+    );
+    setState(() {
+      marker=tmp;
+    });
+    Logger().wtf(marker?.position.toString());
+  }
+
+
+  Widget _professionAutocompleteTextField() {
+    return StreamBuilder(
+      builder: (BuildContext context, AsyncSnapshot snapshot) {
+        return Container(
+            padding: const EdgeInsets.symmetric(horizontal: 40.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const Text('Seleccione profesion:', textAlign: TextAlign.left, textScaleFactor: 1.2,),
+                const SizedBox(height: 8.0),
+                Autocomplete<String>(
+
+                  optionsBuilder: (TextEditingValue textEditingValue) {
+                    if (textEditingValue.text == '') {
+                      return const Iterable<String>.empty();
+                    }
+                    return _professionOptions.where((String option) {
+                      //Logger().wtf(option);
+                      return option.toLowerCase().contains(textEditingValue.text.toLowerCase());
+                    });
+                  },
+                  onSelected: (String selection) {
+                    _professionEditingController.text = selection;
+                    setState(() {
+                      _professionValue = selection;
+                    });
+                  },
+                  fieldViewBuilder: (BuildContext context, TextEditingController fieldTextEditingController,
+                      FocusNode fieldFocusNode, VoidCallback onFieldSubmitted) {
+                    _professionEditingController = fieldTextEditingController;
+                    return
+                      TextField(
+                        //style: const TextStyle(fontWeight: FontWeight.bold),
+                        decoration: const InputDecoration(
+                          contentPadding: EdgeInsets.symmetric(vertical: 10.0),
+                          prefixIcon: Icon(Icons.search),
+                          hintText: 'Buscar profesiones...',
+                          //labelText: "Correo",
+                          border: OutlineInputBorder(
+                            borderRadius: const BorderRadius.all(
+                              Radius.circular(40.0),
+                            ),
+                          ),
+
+                        ),
+                        autofocus: false,
+                        controller: fieldTextEditingController,
+                        focusNode: fieldFocusNode,
+                      );
+                  },
+                  /*optionsViewBuilder: (context, onSelect, options){
+                    return Material(
+                      elevation: 4,
+                      child: ListView.separated(
+                          padding: EdgeInsets.zero,
+                          itemBuilder: (context, index){
+                            final option = options.elementAt(index);
+                            return ListTile(title: Text(option.toString()),contentPadding: EdgeInsets.all(8),);
+                          },
+                          separatorBuilder: (contex, index) => Divider(),
+                          itemCount: options.length),
+                    );
+                  },*/
+                ),
+                const SizedBox(height: 15.0),
+                Text("Profesión requerida: "+_professionValue, textScaleFactor: 1.2,),
+              ],
+            ));
+      },
+    );
+  }
+
+
   Widget _detailTextField() {
     return StreamBuilder(
       builder: (BuildContext context, AsyncSnapshot snapshot) {
@@ -106,12 +202,12 @@ class _RequestsPageState extends State<RequestsPage> {
               children: [
                 Text('Detalles', textAlign: TextAlign.left, textScaleFactor: 1.2,),
                 SizedBox(height: 8.0),
-                Row(
+                /*Row(
                   children: [
                     Checkbox(value: false, onChanged: (value)=>{}, materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,),
                     Text('No adjuntas archivos (fotos)')
                   ],
-                ),
+                ),*/
                 SizedBox(height: 8.0),
                 TextField(
                   decoration: const InputDecoration(
@@ -146,20 +242,6 @@ class _RequestsPageState extends State<RequestsPage> {
             Text('Dirección', textAlign: TextAlign.left, textScaleFactor: 1.2,),
             SizedBox(height: 8.0),
             ElevatedButton(
-              child: Wrap(
-                //padding: EdgeInsets.symmetric(horizontal: 50.0, vertical: 15.0),
-                crossAxisAlignment: WrapCrossAlignment.center,
-                verticalDirection: VerticalDirection.down,
-                children: [
-                  Text('Seleccionar ubicación', style: TextStyle(color: Colors.black),),
-                  SizedBox(width: 10.0),
-                  Icon(
-                    Icons.location_on,
-                    color: Colors.red,
-                  )
-                ],
-              ),
-
               style: ElevatedButton.styleFrom(
                 //padding: EdgeInsets.symmetric(horizontal: 40.0, vertical: 20.0),
                 shape: RoundedRectangleBorder(
@@ -171,88 +253,61 @@ class _RequestsPageState extends State<RequestsPage> {
                 barrierDismissible: false,
                 context: context,
                 builder: (BuildContext context) {
-                  Marker mim = const Marker(
-                    markerId: MarkerId('2'),
-                    position: LatLng(45.497240543179444, -122.65883076936007),
-                    //icon: BitmapDescriptor.,
-                    infoWindow: InfoWindow(
-                    title: 'title',
-                    snippet: 'address',
-                    ),
-                  );
+                  Marker mim;
+                  LatLng center;
+                  Set<Marker> _markers = {};
+                  center = _center;
+                  if(marker != null){
+                    _markers.add(marker!);
+                    center = marker!.position;
+                  }
+                  //Logger().wtf(center.toString());
+
                   return AlertDialog(
+                    content: StatefulBuilder(
+                      builder: (context, setState){
+                        return Container(
+                          height: 350,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text('Seleccione ubicación:', textAlign: TextAlign.left, textScaleFactor: 1.2,),
+                              Container(
+                                height: 300,
+                                width: 300,
+                                child: GoogleMap(
+                                    onMapCreated: _onMapCreated,
+                                    initialCameraPosition: CameraPosition(
+                                      target: center,
+                                      zoom: 11.0,
+                                    ),
+                                    markers: _markers,
+                                    onTap: (ubi){
+                                      setState(
+                                        () {
+                                          mim = Marker(
+                                            markerId: MarkerId('9'),
+                                            position: ubi,
+                                            //icon: BitmapDescriptor.,
+                                            infoWindow: const InfoWindow(
+                                              title: 'Ubicacion',
+                                              snippet: 'seleccionada',
+                                            ),
+                                          );
+                                          _markers.add(mim);
+                                        },
+                                      );
+                                      _add(ubi);
+                                    },
 
-                  content: StatefulBuilder(
-                    builder: (context, setState){
-                      return Container(
-                        height: 350,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text('Seleccione ubicación:', textAlign: TextAlign.left, textScaleFactor: 1.2,),
-                            Container(
-                              height: 300,
-                              width: 300,
-                              child: GoogleMap(
-                                  onMapCreated: _onMapCreated,
-                                  initialCameraPosition: CameraPosition(
-                                    target: _center,
-                                    zoom: 11.0,
                                   ),
-                                  markers: {
-                                    mim
-                                  },
-                                  onTap: (ubi){
-                                    setState(
-                                      () {
-                                        mim = Marker(
-                                          markerId: MarkerId('2'),
-                                          position: ubi,
-                                          //icon: BitmapDescriptor.,
-                                          infoWindow: const InfoWindow(
-                                            title: 'title',
-                                            snippet: 'address',
-                                          ),
-                                        );
-                                      },
-                                    );
-                                    _add(ubi);
-                                  },
-
-                                ),
-                            ),
-                            const Text("ef", textAlign: TextAlign.left, textScaleFactor: 1.2,),
-
-        /*const SizedBox(height: 8.0),
-                        _dropdownDisponibility(),
-                        const SizedBox(height: 20.0),
-                        const Text('Monto estimado', textAlign: TextAlign.left, textScaleFactor: 1.2,),
-                        const SizedBox(height: 8.0),
-                        TextField(
-                          maxLength: 5,
-                          decoration: const InputDecoration(
-                            contentPadding: EdgeInsets.symmetric(vertical: 10.0, horizontal: 10.0),
-                            hintText: 'Precio',
-
-                            //labelText: "Correo",
-                            border: OutlineInputBorder(
-                              borderRadius: const BorderRadius.all(
-                                Radius.circular(10.0),
                               ),
-                            ),
+                              const Text("", textAlign: TextAlign.left, textScaleFactor: 1.2,),
+                            ],
                           ),
-                          onChanged: (value) {},
-                          keyboardType: TextInputType.number,
-                          inputFormatters: [
-                            FilteringTextInputFormatter.allow(RegExp(r'[0-9]')),
-                            FilteringTextInputFormatter.digitsOnly],
-                        ),
-                        const SizedBox(height: 20.0),*/
-                          ],
-                        ),
-                      );
-                    },
-                  ),
+                        );
+                      },
+                    ),
                   actions: <Widget>[
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
@@ -278,6 +333,19 @@ class _RequestsPageState extends State<RequestsPage> {
                   ],
                 );
               }
+              ),
+              child: Wrap(
+                //padding: EdgeInsets.symmetric(horizontal: 50.0, vertical: 15.0),
+                crossAxisAlignment: WrapCrossAlignment.center,
+                verticalDirection: VerticalDirection.down,
+                children: const [
+                  Text('Seleccionar ubicación', style: TextStyle(color: Colors.black),),
+                  SizedBox(width: 10.0),
+                  Icon(
+                    Icons.location_on,
+                    color: Colors.red,
+                  )
+                ],
               )
             ),
           ],
@@ -287,7 +355,7 @@ class _RequestsPageState extends State<RequestsPage> {
     );
   }
 
-  Widget _datebirthTextField() {
+  Widget _dateJobTextField() {
     return StreamBuilder(
       builder: (BuildContext context, AsyncSnapshot snapshot) {
         return Container(
@@ -295,8 +363,8 @@ class _RequestsPageState extends State<RequestsPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Text('Fecha', textAlign: TextAlign.left, textScaleFactor: 1.2,),
-              SizedBox(height: 8.0),
+              const Text('Fecha', textAlign: TextAlign.left, textScaleFactor: 1.2,),
+              const SizedBox(height: 8.0),
               TextField(
                 controller: _dateController,
                 decoration: const InputDecoration(
@@ -315,8 +383,8 @@ class _RequestsPageState extends State<RequestsPage> {
                   DateTime? pickedDate = await showDatePicker(
                       context: context,
                       initialDate: DateTime.now(), //get today's date
-                      firstDate: DateTime(2000), //DateTime.now() - not to allow to choose before today.
-                      lastDate: DateTime(2101)
+                      firstDate: DateTime.now(), //DateTime.now() - not to allow to choose before today.
+                      lastDate: DateTime.now().add(Duration(days: 700))
                   );
 
                   if(pickedDate != null ){
@@ -394,10 +462,6 @@ class _RequestsPageState extends State<RequestsPage> {
     return StreamBuilder(
       builder: (BuildContext context, AsyncSnapshot snapshot) {
         return ElevatedButton(
-          child: Container(
-            //padding: const EdgeInsets.symmetric(horizontal: 40.0),
-            child: Text('Solicitar servicio', style: TextStyle(fontWeight: FontWeight.bold,),),
-          ),
           style: ElevatedButton.styleFrom(
             //padding: EdgeInsets.symmetric(horizontal: 40.0, vertical: 20.0),
             shape: RoundedRectangleBorder(
@@ -406,31 +470,196 @@ class _RequestsPageState extends State<RequestsPage> {
             backgroundColor: Colors.orange,
           ),
           onPressed: () {
-            Logger().d(_dropdownValue + " " + _detailTextController.text + " " +
-                _dateController.text);
+
+            if(_dateController.text == ""){
+              Fluttertoast.showToast(
+                  msg: "Seleccione fecha",
+                  toastLength: Toast.LENGTH_SHORT,
+                  gravity: ToastGravity.BOTTOM,
+                  timeInSecForIosWeb: 1,
+                  backgroundColor: Colors.red,
+                  textColor: Colors.white,
+                  fontSize: 16.0
+              );
+              return;
+            }
+
+            if(_professionValue == ""){
+              Fluttertoast.showToast(
+                  msg: "Seleccione una profesion",
+                  toastLength: Toast.LENGTH_SHORT,
+                  gravity: ToastGravity.BOTTOM,
+                  timeInSecForIosWeb: 1,
+                  backgroundColor: Colors.red,
+                  textColor: Colors.white,
+                  fontSize: 16.0
+              );
+              return;
+            }
+
+            if(marker == null){
+              Fluttertoast.showToast(
+                  msg: "Seleccione ubicación",
+                  toastLength: Toast.LENGTH_SHORT,
+                  gravity: ToastGravity.BOTTOM,
+                  timeInSecForIosWeb: 1,
+                  backgroundColor: Colors.red,
+                  textColor: Colors.white,
+                  fontSize: 16.0
+              );
+              return;
+            }
+
+            if(_detailTextController.text == ""){
+              Fluttertoast.showToast(
+                  msg: "Agregue una descripción",
+                  toastLength: Toast.LENGTH_SHORT,
+                  gravity: ToastGravity.BOTTOM,
+                  timeInSecForIosWeb: 1,
+                  backgroundColor: Colors.red,
+                  textColor: Colors.white,
+                  fontSize: 16.0
+              );
+              return;
+            }
+
+
             BlocProvider.of<AuthCubit>(context).getCurrentUidUseCase().then((uuid) => {
               BlocProvider.of<RequestCubit>(context).addRequest(note: RequestEntity(
               uid: uuid,
-              ubication: GeoPoint(marker.position.latitude, marker.position.longitude),
-              profession: _dropdownValue,
+              ubication: GeoPoint(marker!.position.latitude, marker!.position.longitude),
+              profession: _professionValue,
               date: _dateController.text,
               description:  _detailTextController.text
-
-
               ),).then((value) => {
                 widget.showRequests()
               })
             });
 
-
-            /*Future.delayed(Duration(seconds: 1),(){
-              Navigator.pop(context);
-            });*/
           },
+          child: const Text('Solicitar servicio', style: TextStyle(fontWeight: FontWeight.bold,),),
         );
       },
     );
   }
+
+  static const List<String> _professionOptions = <String>[
+    'Abogado',
+    'Actor/Actriz',
+    'Administrador',
+    'Agricultor',
+    'Albañil',
+    'Animador',
+    'Antropólogo',
+    'Archivólogo',
+    'Arqueólogo',
+    'Arquitecto',
+    'Artesano',
+    'Asistente de tienda',
+    'Barbero',
+    'Barrendero',
+    'Bibliotecario',
+    'Bibliotecólogo',
+    'Biólogo',
+    'Bombero',
+    'Botánico',
+    'Cajero',
+    'Carnicero',
+    'Carpintero',
+    'Cartero',
+    'Cerrajero',
+    'Chofer o conductor',
+    'Científicos',
+    'Cocinero',
+    'Computista',
+    'Conductor de autobús',
+    'Conductor de taxi',
+    'Contador',
+    'Deshollinador',
+    'Ecólogo',
+    'Economista',
+    'Editor',
+    'Electricista',
+    'Electricista',
+    'Electricista',
+    'Enfermera',
+    'Enfermero',
+    'Escritor',
+    'Escultor',
+    'Exterminador',
+    'Farmacólogo',
+    'Filólogo',
+    'Filósofo',
+    'Físico',
+    'Florista',
+    'Fontanero o plomero',
+    'Frutero',
+    'Ganadero',
+    'Geógrafo',
+    'Granjero',
+    'Guardián de tráfico',
+    'Herrero',
+    'Historiador',
+    'Impresor',
+    'Informático',
+    'Ingeniero',
+    'Jardinero',
+    'Lavandero',
+    'Lechero',
+    'Lector de noticias',
+    'Leñador',
+    'Limpiador de ventanas',
+    'Limpiador',
+    'Lingüista',
+    'Locutor',
+    'Matemático',
+    'Mecánico',
+    'Mecánico',
+    'Médico cirujano',
+    'Mesero / Camarera',
+    'Modelo',
+    'Músico',
+    'Obrero',
+    'Óptico',
+    'Paleontólogo',
+    'Panadero',
+    'Panadero',
+    'Paramédico',
+    'Peletero',
+    'Peluquero',
+    'Periodista',
+    'Pescador',
+    'Pintor de brocha gorda',
+    'Pintor',
+    'Pintor',
+    'Plomero',
+    'Policía',
+    'Politólogo',
+    'Profesor',
+    'Psicoanalista',
+    'Psicólogo',
+    'Químico',
+    'Radiólogo',
+    'Recepcionista',
+    'Recolector de basura',
+    'Repartidor',
+    'Salvavidas',
+    'Sastre',
+    'Sastre',
+    'Secretaria',
+    'Secretario',
+    'Sociólogo',
+    'Soldado',
+    'Soldador',
+    'Técnico de sonido',
+    'Técnico en turismo',
+    'Terapeuta',
+    'Tornero',
+    'Trabajador de fábrica',
+    'Vendedor',
+    'Vigilante',
+
+  ];
 
 
 }

@@ -3,7 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../domain/entities/request_entity.dart';
 
 class RequestModel extends RequestEntity{
-  const RequestModel({
+  RequestModel({
     final String? profession,
     final GeoPoint? ubication,
     final String? uid,
@@ -11,7 +11,9 @@ class RequestModel extends RequestEntity{
     final String? date,
     final String? trabajadorUid,
     final String? requestId,
-    final String? description
+    final String? description,
+    final String? clientName,
+    final List<String>? applicantsList
   }):super(
     profession: profession,
     ubication: ubication,
@@ -20,7 +22,9 @@ class RequestModel extends RequestEntity{
     date: date,
     trabajadorUid: trabajadorUid,
     requestId: requestId,
-    description: description
+    description: description,
+    clientName: clientName,
+    applicantsList: applicantsList
   );
 
   factory RequestModel.fromSnapshot(DocumentSnapshot documentSnapshot){
@@ -32,7 +36,9 @@ class RequestModel extends RequestEntity{
       date: documentSnapshot.get('date'),
       trabajadorUid: documentSnapshot.get('trabajadorUid'),
       requestId: documentSnapshot.get('requestId'),
-      description: documentSnapshot.get('description')
+      description: documentSnapshot.get('description'),
+      clientName: documentSnapshot.get('clientName'),
+      applicantsList: documentSnapshot.get('applicantsList') == null ? [] : List.from(documentSnapshot.get('applicantsList')),
     );
   }
 
@@ -45,7 +51,9 @@ class RequestModel extends RequestEntity{
       "date":date,
       "trabajadorUid":trabajadorUid,
       "requestId": requestId,
-      "description": description
+      "description": description,
+      "clientName": clientName,
+      "applicantsList": applicantsList
     };
   }
 

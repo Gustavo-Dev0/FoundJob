@@ -6,6 +6,7 @@ import 'package:work_app/src/presentation/pages/requests_made_page.dart';
 import 'package:work_app/src/presentation/pages/requests_page.dart';
 
 import '../cubit/auth/auth_cubit.dart';
+import 'chat_page.dart';
 
 class MainPage extends StatefulWidget {
   static String id = 'main_page';
@@ -58,24 +59,25 @@ class _MainPageState extends State<MainPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('FoundJob'),
+        title: const Text('BuscaChamba'),
         automaticallyImplyLeading: false,
         backgroundColor: Colors.orange,
         actions: <Widget>[
           TextButton(
             style: ButtonStyle(
-                    backgroundColor: MaterialStatePropertyAll<Color>(Colors.red),
+                    //backgroundColor: MaterialStatePropertyAll<Color>(Colors.red),
                   ),
 
             onPressed: () {
               BlocProvider.of<AuthCubit>(context).loggedOut();
             },
-            child: const Text('Cerrar sesión'),
+            child: const Text('Cerrar sesión', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold, fontSize: 14),),
           ),
         ],
       ),
       //body: _widgetOptions.elementAt(_selectedIndex),
-      body: <Widget>[RequestsPage(
+      body: [
+        RequestsPage(
         showRequests: () {
           setState(() {
             setState(() {
@@ -84,12 +86,13 @@ class _MainPageState extends State<MainPage> {
           });
         },
       ),
-        RequestsAcceptedPage(),
+        RequestsAcceptedPage(userId: widget.uid,),
         RequestsMadePage(uid: widget.uid),
-        Text(
+        ChatPage(uid : widget.uid, isClient: true),
+        /*Text(
           'Index 3: Configuración',
           style: optionStyle,
-        )][_selectedIndex],
+        )*/][_selectedIndex],
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
         items: const <BottomNavigationBarItem>[
@@ -109,10 +112,14 @@ class _MainPageState extends State<MainPage> {
             //backgroundColor: Colors.purple,
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.settings),
-            label: 'Configuracion',
+            icon: Icon(Icons.messenger),
+            label: 'Chats',
             //backgroundColor: Colors.purple,
           ),
+          /*BottomNavigationBarItem(
+            icon: Icon(Icons.settings),
+            label: 'Configuracion',
+          ),*/
         ],
         currentIndex: _selectedIndex,
         selectedItemColor: Colors.orange,

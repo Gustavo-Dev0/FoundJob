@@ -26,11 +26,16 @@ class AuthCubit extends Cubit<AuthState> {
       final isSignIn=await isSignInUseCase.call();
       if (isSignIn){
 
-        final uid=await getCurrentUidUseCase.call();
+        //final uid=await getCurrentUidUseCase.call();
         final userProfile = await getCurrentUserInfoUseCase.call();
+        if(userProfile.uid == "0000000000"){
+          emit(AuthenticatedWithoutRegister());
+        }else{
+          emit(Authenticated(uid: userProfile.uid!, profile: userProfile));
+        }
         //Logger().wtf("resultadoa: "+uid+"  "+userProfile.role!);
         /*final userProfile = await getCurrentUserInfoUseCase.call();*/
-        emit(Authenticated(uid: uid, profile: userProfile));
+
       }else{
         emit(UnAuthenticated());
       }

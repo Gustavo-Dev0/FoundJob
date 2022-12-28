@@ -22,7 +22,15 @@ class RequestFailure extends RequestState {
 class RequestLoaded extends RequestState {
   final List<RequestEntity> requests;
 
-  RequestLoaded({required this.requests});
+  const RequestLoaded({required this.requests});
   @override
   List<Object> get props => [requests];
+}
+
+class ApplicantLoaded extends RequestState {
+  final List<ApplicantEntity> applicants;
+
+  const ApplicantLoaded({required this.applicants});
+  @override
+  List<Object> get props => [applicants];
 }
