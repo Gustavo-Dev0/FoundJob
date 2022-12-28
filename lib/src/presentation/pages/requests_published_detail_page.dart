@@ -95,9 +95,12 @@ class _RequestsPublishedDetailPageState extends State<RequestsPublishedDetailPag
                                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                               children: [
                                                 const SizedBox(height: 20.0),
+                                                const Text('Profesión/Oficio requerido:', textAlign: TextAlign.left, textScaleFactor: 1.2,),
+                                                Text(widget.itemRJ.profession!, textAlign: TextAlign.left, textScaleFactor: 1.4,style: TextStyle(fontWeight: FontWeight.bold)),
+                                                const SizedBox(height: 8.0),
                                                 const Text('Fecha', textAlign: TextAlign.left, textScaleFactor: 1.2,),
                                                 const SizedBox(height: 8.0),
-                                                Text(widget.itemRJ.date!),
+                                                Text(widget.itemRJ.date!, textAlign: TextAlign.left, textScaleFactor: 1.4,style: TextStyle(fontWeight: FontWeight.bold)),
                                                 const SizedBox(height: 20.0),
                                                 const Text('Dirección', textAlign: TextAlign.left, textScaleFactor: 1.2,),
                                                 const SizedBox(height: 8.0),

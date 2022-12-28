@@ -112,4 +112,6 @@ class UserCubit extends Cubit<UserState> {
     }
 
   }
+
+  submitFacebookSignIn() {}
 }

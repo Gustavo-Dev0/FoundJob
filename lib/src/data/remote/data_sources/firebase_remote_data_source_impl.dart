@@ -72,9 +72,11 @@ class FirebaseRemoteDataSourceImpl implements FirebaseRemoteDataSource {
   @override
   Future<List<RequestEntity>> getRequestsByProfession(List<String> professions) async {
     List<RequestEntity> l = [];
+    UserEntity userP = await getCurrentUserInfo();
+    Logger().wtf(professions.toString());
     var p1 = await firestore.collection("users").get();
     for(var e in p1.docs){
-      var p2 = await firestore.collection("users").doc(e.id).collection('requests').get();
+      var p2 = await firestore.collection("users").doc(e.id).collection('requests').where('profession', whereIn: userP.professions).get();
       if(p2.size == 0)  continue;
       for(var element in p2.docs){
         l.add(RequestModel.fromSnapshot(element));
@@ -116,7 +118,6 @@ class FirebaseRemoteDataSourceImpl implements FirebaseRemoteDataSource {
     final uid= await getCurrentUId();
     final userRef = await userCollectionRef.doc(uid).get();
     if (!userRef.exists){
-      Logger().wtf("jaja");
       return Future<UserEntity>.value(UserModel(uid: "0000000000"));
     }
     return  Future<UserEntity>.value(UserModel.fromSnapshot(userRef));
@@ -183,7 +184,7 @@ class FirebaseRemoteDataSourceImpl implements FirebaseRemoteDataSource {
     await applicantCollectionRef.doc(applicantId).set(newApplicant);
 
 
-    Logger().wtf("Mission 1 complete");
+    //Logger().wtf("Mission 1 complete");
 
     Map<String,dynamic> requestMap = {};
 
@@ -198,7 +199,7 @@ class FirebaseRemoteDataSourceImpl implements FirebaseRemoteDataSource {
 
     await requestCollectionRef.doc(requestEntity.requestId).update(requestMap);
     requestEntity.applicantsList!.add(applicantEntity.workerId!);
-    Logger().wtf("Mission 2 complete");
+    //Logger().wtf("Mission 2 complete");
   }
 
   @override

@@ -387,6 +387,17 @@ class _LoginPageState extends State<LoginPage> {
         print(loginResult.status);
         print(loginResult.message);
       }
+      /*final OAuthCredential facebookAuthCredential = FacebookAuthProvider.credential(loginResult.accessToken!.token);
+      var uC = await FirebaseAuth.instance.signInWithCredential(facebookAuthCredential);
+      try{
+        if (true) {
+          await BlocProvider.of<UserCubit>(context).submitFacebookSignIn();
+          await BlocProvider.of<AuthCubit>(context).appStarted();
+        }
+
+      }catch(e){
+        Logger().wtf(e.toString());
+      }*/
 
       // Create a credential from the access token
       /*final OAuthCredential facebookAuthCredential = FacebookAuthProvider.credential(loginResult.accessToken!.token);

@@ -547,6 +547,7 @@ class _RegisterPageState extends State<RegisterPage> {
         password: _passwordController.text,
         role: _isProfessional ? "trabajador" : "cliente" ,
         degreeCode: _degreeCodeController.text,
+        professions: _professionList
 
       ), file2: pickedFile);
     }else{
